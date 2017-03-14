@@ -1,0 +1,52 @@
+			****** GERADOR DE CODIGO ****** 
+
+Foram realizados diversos testes e a maioria deles com êxito, incluindo os seguintes:
+
+function
+ret? $0 $1
+end
+
+function
+v0 = p0 * $2
+ret? $0 v0
+end
+
+function
+v0 = p0 + $1
+ret? $0 v0
+end
+
+function
+v0 = p0 - $2
+ret? $0 v0
+end
+
+function       /* com p0 = 2 */
+v0 = p0 - $2
+v1 = $3 * p0
+ret? v0 v1
+end
+
+function     /* com p0 = 0 funciona, qualquer outro valor retorna 1 também */
+ret? p0 $1
+v0 = p0 + $0
+v1 = v0 - $1
+v1 = call 0 v1
+v0 = v0 * v1
+ret? $0 v0
+end
+
+function      /* com p0 = 0 funciona, qualquer outro valor retorna 0 também */
+v0 = p0 * p0
+ret? $0 v0
+end
+function
+ret? p0 $0
+v0 = p0 - $1
+v1 = call 0 p0
+v0 = call 1 v0
+v0 = v0 + v1
+ret? $0 v0
+end
+
+Obs dos testes: As funções que nessecitam fazer um cmp para realizar um jne não funcionam e retornam para o próprio leave-ret ao invés de pular
