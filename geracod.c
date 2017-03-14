@@ -351,3 +351,13 @@ void geracod (FILE * arq, void ** code, funcp * entry)
 		line++;
 		fscanf(arq," ");
 	}
+
+	if (n_local != 0) /* Verifica se há variaveis locais para serem alocadas na pilha */
+	{
+		memcpy(&codigo[4],alocacao,sizeof(alocacao));	/* Aloca espaço na pilha */
+		codigo[7]= 16 * (n_local) - (n_local / 2) * 16;		/* Descobre quanto subtrair de %rsp */
+	}
+
+	*entry = (funcp) call_desvio[func-1]; /* Guardando endereço da última função SBF */
+	*code = (void *) codigo; /* "Guardando codigo de maquina" em void ** code */
+}
