@@ -106,3 +106,110 @@ void geracod (FILE * arq, void ** code, funcp * entry)
 					error("comando invalido", line);
 				break;
 			}
+			case 'r': /* Retorno */
+			{
+				int idx0, idx1;
+        		char var0, var1;
+        		if (fscanf(arq, "et? %c%d %c%d", &var0, &idx0, &var1, &idx1) != 4) 
+        		  error("comando invalido", line);
+        		if (var0 == '$' && idx0 == 0)
+        		{
+        			if (var1 == '$')
+        			{
+        				memcpy(&codigo[n],move_constante,sizeof(move_constante));	/* Copia move_constante para codigo */
+			    		n += sizeof(move_constante);		/* Atualiza posição livre em codigo */
+						*((int*) &codigo[n]) = idx1;	 /* Insere valor em little endian */
+			    		n += 4;		/* Atualiza posição livre em codigo */
+        			}
+        			else
+        			{
+        				if (var1 == 'v')
+        				{
+        					memcpy(&codigo[n],move_variavel,sizeof(move_variavel));		/* Copia move_variavel para codigo */
+			    			n += sizeof(move_variavel);		/* Atualiza posição livre em codigo */
+			    			codigo[n++]= 0xf8 -8*idx1;	/* Calcula posição da variavel na pilha */
+        				}
+        				else if (var1 == 'p')
+        				{
+        					memcpy(&codigo[n],move_parametro,sizeof(move_parametro));		/* Copia move_parametro para codigo */
+			    			n += sizeof(move_parametro);	/* Atualiza posição livre em codigo	*/	
+			    			codigo[n++]= 0xf8;	/* Guarda edi */
+        				}
+        			}	
+        		}
+        		else if (var0 == 'v')
+        		{
+        			memcpy(&codigo[n],cmp,sizeof(cmp));		/* Copia comparacao para codigo */
+		        	n += sizeof(cmp);	/* Atualiza posição livre em codigo */
+		        	codigo[n-2] = 0xf8 -8*idx0;		/* Corresponde ao acesso da variavel na pilha */
+		        
+		        	memcpy(&codigo[n],jne,sizeof(jne));		/* Copia jne para codigo */
+		        	n += sizeof(jne);	/* Atualiza posição livre em codigo */
+
+        			idx_ref = n; /* Guarda posiçao para colocar endereço correto no final */
+        			n++; /* Atualiza posição livre de codigo para continuar */
+
+        			if (var1 == '$')
+        			{
+        				memcpy(&codigo[n],move_constante,sizeof(move_constante));	/* Copia move_constante para codigo */
+			    		n += sizeof(move_constante);		/* Atualiza posição livre em codigo */
+						*((int*) &codigo[n]) = idx1;	 /* Insere valor em little endian */
+			    		n += 4;		/* Atualiza posição livre em codigo */
+        			}
+        			else
+        			{
+        				if (var1 == 'v')
+        				{
+        					memcpy(&codigo[n],move_variavel,sizeof(move_variavel));		/* Copia move_variavel para codigo */
+			    			n += sizeof(move_variavel);		/* Atualiza posição livre em codigo */
+			    			codigo[n++]= 0xf8 -8*idx1;	/* Calcula posição da variavel na pilha */
+        				}
+        				else if (var1 == 'p')
+        				{
+        					memcpy(&codigo[n],move_parametro,sizeof(move_parametro));		/* Copia move_parametro para codigo */
+			    			n += sizeof(move_parametro);	/* Atualiza posição livre em codigo	*/	
+			    			codigo[n++]= 0xf8;	/* Considera edi */
+        				}
+        			}
+        			codigo[idx_ref] = (unsigned char)(&codigo[n] - (&codigo[idx_ref] + 1)); /* Calculo para jump to ret */
+        		}
+        		else if (var0 == 'p')
+        		{
+        			memcpy(&codigo[n],cmp_parametro,sizeof(cmp_parametro));		/* Copia comparacao para codigo */
+		        	n += sizeof(cmp_parametro);	/* Atualiza posição livre em codigo */
+		        	codigo[n-2] = 0xf8;		/* Considera edi */
+		        
+		        	memcpy(&codigo[n],jne,sizeof(jne));		/* Copia jne para codigo */
+		        	n += sizeof(jne);	/* Atualiza posição livre em codigo */
+
+        			idx_ref = n; /* Guarda posiçao para colocar endereço correto no final */
+        			n ++; /* Atualiza posição livre de codigo para continuar */
+
+        			if (var1 == '$')
+        			{
+        				memcpy(&codigo[n],move_constante,sizeof(move_constante));	/* Copia move_constante para codigo */
+			    		n += sizeof(move_constante);		/* Atualiza posição livre em codigo */
+						*((int*) &codigo[n]) = idx1;	 /* Insere valor em little endian */
+			    		n += 4;		/* Atualiza posição livre em codigo */
+        			}
+        			else
+        			{
+        				if (var1 == 'v')
+        				{
+        					memcpy(&codigo[n],move_variavel,sizeof(move_variavel));		/* Copia move_variavel para codigo */
+			    			n += sizeof(move_variavel);		/* Atualiza posição livre em codigo */
+			    			codigo[n++]= 0xf8 -8*idx1;	/* Calcula posição da variavel na pilha */
+        				}
+        				else if (var1 == 'p')
+        				{
+        					memcpy(&codigo[n],move_parametro,sizeof(move_parametro));		/* Copia move_parametro para codigo */
+			    			n += sizeof(move_parametro);	/* Atualiza posição livre em codigo	*/	
+			    			codigo[n++]= 0xf8;	/* Considera edi */
+        				}
+        			}
+        			codigo[idx_ref] = (unsigned char)(&codigo[n] - (&codigo[idx_ref] + 1)); /* Calculo para jump to ret */
+        		}
+        		memcpy(&codigo[n],ret,sizeof(ret));	 /* Copia leave - ret para codigo */
+			    n += sizeof(ret);	/* Atualiza posição livre em codigo */
+        		break;
+			}
