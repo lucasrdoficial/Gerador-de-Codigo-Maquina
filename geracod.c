@@ -99,3 +99,10 @@ void geracod (FILE * arq, void ** code, funcp * entry)
 				n += sizeof(nop);	/* Atualiza posição livre em codigo */
 				break;
 			}
+			case 'e': /* End */
+			{
+				char c0;
+				if (fscanf(arq, "nd%c", &c0) != 1)
+					error("comando invalido", line);
+				break;
+			}
