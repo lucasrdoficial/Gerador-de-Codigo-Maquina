@@ -361,3 +361,9 @@ void geracod (FILE * arq, void ** code, funcp * entry)
 	*entry = (funcp) call_desvio[func-1]; /* Guardando endereço da última função SBF */
 	*code = (void *) codigo; /* "Guardando codigo de maquina" em void ** code */
 }
+
+void liberacod (void *p)
+{
+	unsigned char * ptr = (unsigned char *) p ;
+	free(ptr); /* Liberacao de memoria alocada */
+}
