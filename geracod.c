@@ -57,3 +57,45 @@ static void error (const char * msg, int line)
   	fprintf(stderr, "erro %s na linha %d\n", msg, line);
   	exit(EXIT_FAILURE);
 }
+
+/* Caso haja falta de memória será enviado somente uma mensagem para o usuário e void ** code = 0 */
+void geracod (FILE * arq, void ** code, funcp * entry)
+{
+	/* Variavel */
+	int c, idx_ref, n = 0, func = 0, n_local = 0, line = 1;
+
+	/* Alocacao de memoria para guardar codigo de maquina */
+	unsigned char * codigo = (unsigned char *) malloc (sizeof(char) * MAX);
+	if (codigo == NULL) /* Verificando se alocacao foi correta */
+	{
+		printf("Falta Memoria!\n");
+		* code = 0;
+	}
+	/* Vetor para sinalizar uso de variáveis locais */
+	unsigned char var_local[5] = {FALSE,FALSE,FALSE,FALSE,FALSE};
+
+	/* Vetor para desvio de call */
+	unsigned long call_desvio[50];
+
+	/* Começar a traduzir o código do arquivo */
+	while ((c = fgetc(arq)) != EOF)
+	{
+		switch(c)
+		{
+			case 'f': /* Function */
+			{
+				char c0;
+				if (fscanf(arq, "unction%c", &c0) != 1)
+					error("comando invalido", line);
+
+				call_desvio[func] = (unsigned long) &codigo[n]; /* Guarda endereço de incio de função */
+				func ++; /* Atualiza posicao livre do vetor call */
+
+				/* Iniciando a criação do código */
+				memcpy(&codigo[n],prologo,sizeof(prologo)); /* Copia prologo para codigo */
+				n += sizeof(prologo); /* Atualiza posição livre em codigo */
+
+				memcpy(&codigo[n],nop,sizeof(nop));	/* Copia nop para codigo */
+				n += sizeof(nop);	/* Atualiza posição livre em codigo */
+				break;
+			}
