@@ -249,3 +249,105 @@ void geracod (FILE * arq, void ** code, funcp * entry)
 			    	*((int *) &codigo[n]) = (unsigned long)call_desvio[f] - (unsigned long)&codigo[n+4]; /* Calculo para jump to ret */
 			    	n++; /* Atualiza posição livre em codigo */
 	        	}
+	        	else /* Operacao Aritmetica */
+        		{
+          			int idx1, idx2;
+          			char var1 = c0, var2, op;
+          			if (fscanf(arq, "%d %c %c%d", &idx1, &op, &var2, &idx2) != 4)
+           				error("comando invalido", line);
+          			if(var1 == '$')
+          			{
+         	 			memcpy(&codigo[n],move_constante,sizeof(move_constante));	/* Copia move_constante para codigo */
+         	 			n += sizeof(move_constante);		/* Atualiza posição livre em codigo */
+         	 			*((int *) &codigo[n]) = idx1;	/* Insere valor em little endian */
+			    		n += 4;		/* Atualiza posição livre em codigo */
+         	 		}
+         	 		else if (var1 == 'v')
+         	 		{	
+         	 			memcpy(&codigo[n],move_variavel,sizeof(move_variavel));		/* Copia move_variavel para codigo */
+         	 			n += sizeof(move_variavel);		/* Atualiza posição livre em codigo */
+         	 			codigo[n++]= 0xf8 -8*idx1;	/* Calcula posição da variavel na pilha */
+					}
+				else if (var1 == 'p')
+				{
+					memcpy(&codigo[n],move_parametro,sizeof(move_parametro));		/* Copia move_parametro para codigo */
+					n += sizeof(move_parametro);		/* Atualiza posição livre em codigo */
+			    		codigo[n++]= 0xf8;		/* Guarda o edi */
+        			}
+        			if(op == '+')
+        			{
+						if(var2 == '$')  /* Instrucao eax = eax + constante */
+						{				
+							memcpy(&codigo[n],add_constante,sizeof(add_constante));	   /* Copia add_constante para codigo */
+							n += sizeof(add_constante);		/* Atualiza posição livre em codigo */
+							*((int*) &codigo[n]) = idx2;       /* Insere valor em little endian */
+			    			n += 4;		/* Atualiza posição livre em codigo */
+						}
+						else if(var2 == 'v')   /* Instrução eax = eax + vi */
+						{			
+							memcpy(&codigo[n],add_variavel,sizeof(add_variavel));		/* Copia add_variavel para codigo */
+							n += sizeof(add_variavel);		/* Atualiza posição livre em codigo */
+							codigo[n++]= 0xf8 -8*idx2;		/* Calcula posição da variavel na pilha */
+						}
+						else   /* Instrução eax = eax + p0 */
+						{							
+							memcpy(&codigo[n],add_parametro,sizeof(add_parametro));		/* Copia add_parametro para codigo */
+							n += sizeof(add_parametro);		/* Atualiza posição livre em codigo */
+			    			codigo[n++]= 0xf8;		/* Guarda o edi */
+						}
+					}
+					else if(op == '-')
+					{					
+						if(var2 == '$')  /* Instrução eax = eax - constante */
+						{				
+							memcpy(&codigo[n],sub_constante,sizeof(sub_constante));		/* Copia sub_constante para codigo */
+							n += sizeof(sub_constante);		/* Atualiza posição livre em codigo */
+							*((int*) &codigo[n]) = idx2;		/* Insere valor em little endian */
+			    			n += 4;		/* Atualiza posição livre em codigo */
+						}
+						else if(var2 == 'v')  /* Instrução eax = eax - vi */
+						{			
+							memcpy(&codigo[n],sub_variavel,sizeof(sub_variavel));	/* Copia sub_variavel para codigo */
+							n += sizeof(sub_variavel);		/* Atualiza posição livre em codigo */
+							codigo[n++]= 0xf8 -8*idx2;	/* Calcula posição da variavel na pilha */
+						}
+						else  /* Instrução eax = eax - p0 */
+						{							
+							memcpy(&codigo[n],sub_parametro,sizeof(sub_parametro));		/* Copia sub_parametro para codigo */
+							n += sizeof(sub_parametro);		/* Atualiza posição livre em codigo */
+			    			codigo[n++]= 0xf8;	 /* Guarda o edi */
+						}
+					}
+					else
+					{
+						if(var2 == '$')  /* Instrução eax = eax * constante */
+						{				
+							memcpy(&codigo[n],mult_constante,sizeof(mult_constante));		/* Copia mult_constante para codigo */
+							n += sizeof(mult_constante);		/* Atualiza posição livre em codigo */
+							*((int*) &codigo[n]) = idx2;	/* Insere valor em little endian */
+			    			n += 4;		/* Atualiza posição livre em codigo */
+						}
+						else if(var2 == 'v')   /* Instrução eax = eax * vi */
+						{			
+							memcpy(&codigo[n],mult_variavel,sizeof(mult_variavel));		/* Copia mult_variavel para codigo */
+							n += sizeof(mult_variavel);			/* Atualiza posição livre em codigo */
+							codigo[n++]= 0xf8 -8*idx2;		/* Calcula posição da variavel na pilha */
+						}
+						else  /* Instrução eax = eax * p0 */
+						{						
+							memcpy(&codigo[n],mult_parametro,sizeof(mult_parametro));		/* Copia mult_parametro para codigo */
+							n += sizeof(mult_parametro);		/* Atualiza posição livre em codigo */
+			    			codigo[n++]= 0xc7;		/* Guarda o edi */
+			    		}
+			    	}
+			    }
+			    memcpy(&codigo[n],atribuicao,sizeof(atribuicao));	/* Copia atribuicao para codigo */
+				n += sizeof(atribuicao);	/* Atualiza posição livre em codigo */
+				codigo[n++]= 0xf8 -8*idx0;	/* Calcula posição da variavel na pilha */
+				break;	
+     		}
+    		default: error("comando desconhecido", line);
+		}
+		line++;
+		fscanf(arq," ");
+	}
