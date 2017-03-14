@@ -213,3 +213,39 @@ void geracod (FILE * arq, void ** code, funcp * entry)
 			    n += sizeof(ret);	/* Atualiza posição livre em codigo */
         		break;
 			}
+			case 'v': /* Atribuição */
+			{
+        		int idx0;
+        		char c0;
+        		if (fscanf(arq, "%d = %c",&idx0, &c0) != 2)
+        		  error("comando invalido",line);
+        		if (var_local[idx0] == FALSE) /* Verifica se variável foi contabilizada */
+        		{
+        			var_local[idx0] = TRUE;
+        			n_local++;  /* Contabiliza Variável */
+        		}
+
+        		if (c0 == 'c') /* Call */
+        		{
+          			int f, idx1;
+          			char var1;
+          			if (fscanf(arq, "all %d %c%d\n", &f, &var1, &idx1) != 3)
+            			error("comando invalido",line);
+	            		if (var1 == '$')
+	            		{
+	            			memcpy(&codigo[n],constante2par,sizeof(constante2par));	/* Copia constante2par para codigo */
+         	 			n += sizeof(constante2par);		/* Atualiza posição livre em codigo */
+         	 			*((int *) &codigo[n]) = idx1;	/* Insere valor em little endian */
+			    		n += 4;		/* Atualiza posição livre em codigo */
+	            		}
+	            		else if (var1 == 'v')
+	            		{
+	            			memcpy(&codigo[n],variavel2par,sizeof(variavel2par));		/* Copia variavel2par para codigo */
+         	 			n += sizeof(variavel2par);		/* Atualiza posição livre em codigo */
+         	 			codigo[n++]= 0xf8 -8*idx1;	/* Calcula posição da variavel na pilha */
+	            		}
+        			memcpy(&codigo[n],call,sizeof(call));	 /* Copia call para codigo */
+			    	n += sizeof(call);	/* Atualiza posição livre em codigo */
+			    	*((int *) &codigo[n]) = (unsigned long)call_desvio[f] - (unsigned long)&codigo[n+4]; /* Calculo para jump to ret */
+			    	n++; /* Atualiza posição livre em codigo */
+	        	}
