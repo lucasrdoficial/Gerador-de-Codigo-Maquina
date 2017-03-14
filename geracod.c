@@ -48,3 +48,12 @@ static unsigned char mult_parametro[] = {0x0f,0xaf}          ; /* imull %paramet
 static unsigned char call          [] = {0xe8}               ; /* call funcao */
 static unsigned char jne           [] = {0x75}               ; /* desvio condicional -> if (var != 0) */
 static unsigned char ret           [] = {0xc9,0xc3}          ; /* leave - ret */
+
+/********************** Implementacao das Funcoes ********************/
+
+
+static void error (const char * msg, int line) 
+{
+  	fprintf(stderr, "erro %s na linha %d\n", msg, line);
+  	exit(EXIT_FAILURE);
+}
